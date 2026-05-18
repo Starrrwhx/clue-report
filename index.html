@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="format-detection" content="telephone=no">
+    <title>可疑线索报告</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-bg: #eff6ff;
+            --success: #10b981;
+            --danger: #e53e3e;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --bg: #f5f6f7;
+            --card: #ffffff;
+            --input-bg: #f8fafc;
+            --radius: 12px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            background: var(--bg);
+            min-height: 100vh;
+            padding-bottom: calc(80px + var(--safe-bottom));
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 顶部导航 */
+        .navbar {
+            position: sticky; top: 0; z-index: 100;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: #fff; padding: 14px 16px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 12px rgba(30, 64, 175, 0.3);
+        }
+        .navbar h1 { font-size: 17px; font-weight: 600; letter-spacing: 1px; }
+        .navbar .nav-icon { margin-right: 8px; font-size: 18px; }
+
+        /* 卡片 */
+        .card {
+            background: var(--card);
+            margin: 12px 12px 0;
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+        }
+        .card-title {
+            font-size: 15px; font-weight: 700; color: var(--primary);
+            margin-bottom: 14px; padding-bottom: 10px;
+            border-bottom: 1px solid var(--primary-bg);
+            display: flex; align-items: center;
+        }
+        .card-title .icon { margin-right: 8px; font-size: 16px; }
+
+        /* 表单 */
+        .field { margin-bottom: 14px; }
+        .field:last-child { margin-bottom: 0; }
+        .field-label {
+            font-size: 13px; color: var(--text-secondary);
+            margin-bottom: 6px; display: flex; align-items: center;
+        }
+        .field-label .req { color: var(--danger); margin-left: 2px; }
+        .field-input {
+            width: 100%; height: 42px;
+            background: var(--input-bg); border: 1.5px solid var(--border);
+            border-radius: 8px; padding: 0 12px;
+            font-size: 14px; color: var(--text);
+            outline: none; transition: border-color 0.2s;
+            -webkit-appearance: none; appearance: none;
+        }
+        .field-input:focus { border-color: var(--primary); background: #fff; }
+        .field-input::placeholder { color: var(--text-muted); }
+        .field-textarea {
+            width: 100%; min-height: 100px;
+            background: var(--input-bg); border: 1.5px solid var(--border);
+            border-radius: 8px; padding: 10px 12px;
+            font-size: 14px; color: var(--text);
+            outline: none; resize: vertical;
+            font-family: inherit; line-height: 1.6;
+            transition: border-color 0.2s;
+        }
+        .field-textarea:focus { border-color: var(--primary); background: #fff; }
+        .field-textarea::placeholder { color: var(--text-muted); }
+        .field-select {
+            width: 100%; height: 42px;
+            background: var(--input-bg); border: 1.5px solid var(--border);
+            border-radius: 8px; padding: 0 12px;
+            font-size: 14px; color: var(--text);
+            outline: none; -webkit-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%2394a3b8'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+        .field-select:focus { border-color: var(--primary); }
+        .field-select option { color: var(--text); }
+
+        /* 附件区 */
+        .upload-zone {
+            border: 1.5px dashed var(--border); border-radius: 8px;
+            padding: 20px; text-align: center; margin-top: 8px;
+            cursor: pointer; transition: border-color 0.2s;
+        }
+        .upload-zone:active { border-color: var(--primary); background: var(--primary-bg); }
+        .upload-icon { font-size: 28px; color: var(--text-muted); margin-bottom: 6px; }
+        .upload-text { font-size: 13px; color: var(--text-secondary); }
+        .upload-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .file-list { margin-top: 8px; }
+        .file-item {
+            display: flex; align-items: center;
+            background: var(--input-bg); border-radius: 8px;
+            padding: 10px 12px; margin-bottom: 6px;
+        }
+        .file-item .ficon { margin-right: 10px; font-size: 20px; }
+        .file-item .fname { flex: 1; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .file-item .fsize { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .file-item .fremove { padding: 4px 8px; color: var(--danger); font-size: 16px; cursor: pointer; }
+
+        /* 底部栏 */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--card);
+            padding: 10px 12px;
+            padding-bottom: calc(10px + var(--safe-bottom));
+            display: flex; gap: 10px;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+            z-index: 100;
+        }
+        .btn {
+            flex: 1; height: 44px; border: none; border-radius: 22px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            letter-spacing: 1px; transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; }
+        .btn-success { background: var(--success); color: #fff; }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.75); color: #fff;
+            padding: 12px 24px; border-radius: 8px;
+            font-size: 14px; z-index: 999;
+            opacity: 0; transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+
+        /* 预览页 */
+        .preview-section {
+            margin-bottom: 16px;
+        }
+        .preview-section-title {
+            font-size: 14px; font-weight: 700; color: var(--primary);
+            margin-bottom: 10px; padding-left: 8px;
+            border-left: 3px solid var(--primary);
+        }
+        .preview-row {
+            display: flex; margin-bottom: 8px; line-height: 1.7;
+        }
+        .preview-row .label {
+            min-width: 120px; flex-shrink: 0;
+            font-size: 13px; color: var(--primary); font-weight: 600;
+        }
+        .preview-row .value {
+            flex: 1; font-size: 13px; color: var(--text); word-break: break-all;
+        }
+        .preview-row .value.empty { color: var(--text-muted); }
+        .preview-block {
+            margin-bottom: 12px;
+        }
+        .preview-block .label {
+            font-size: 13px; color: var(--primary); font-weight: 600; margin-bottom: 4px;
+        }
+        .preview-block .value {
+            font-size: 13px; color: var(--text); white-space: pre-wrap; line-height: 1.7;
+        }
+
+        /* 页面切换 */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* 提示信息 */
+        .tip {
+            font-size: 11px; color: var(--text-muted);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 页面1: 表单填写 -->
+<div class="page active" id="pageForm">
+    <nav class="navbar">
+        <h1><span class="nav-icon">🛡️</span>可疑线索报告</h1>
+    </nav>
+
+    <!-- 基本信息 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">📋</span>基本信息</div>
+        <div class="field">
+            <div class="field-label">上报日期<span class="req">*</span></div>
+            <input type="date" class="field-input" id="reportDate">
+        </div>
+        <div class="field">
+            <div class="field-label">上报人<span class="req">*</span></div>
+            <input type="text" class="field-input" id="reporter" placeholder="请输入上报人姓名">
+        </div>
+        <div class="field">
+            <div class="field-label">上报人联系方式</div>
+            <input type="tel" class="field-input" id="reporterContact" placeholder="请输入联系方式">
+        </div>
+        <div class="field">
+            <div class="field-label">上报支行<span class="req">*</span></div>
+            <select class="field-select" id="handlerDepartment">
+                <option value="">请选择上报支行</option>
+                <option value="大良支行">大良支行</option>
+                <option value="伦教支行">伦教支行</option>
+                <option value="陈村支行">陈村支行</option>
+                <option value="北滘支行">北滘支行</option>
+                <option value="乐从支行">乐从支行</option>
+                <option value="勒流支行">勒流支行</option>
+                <option value="龙江支行">龙江支行</option>
+                <option value="杏坛支行">杏坛支行</option>
+                <option value="均安支行">均安支行</option>
+                <option value="容桂支行">容桂支行</option>
+                <option value="科创支行">科创支行</option>
+                <option value="总行营业部">总行营业部</option>
+                <option value="恩平支行">恩平支行</option>
+                <option value="南海支行">南海支行</option>
+                <option value="英德支行">英德支行</option>
+                <option value="南门支行">南门支行</option>
+                <option value="德胜支行">德胜支行</option>
+                <option value="南沙分行">南沙分行</option>
+                <option value="横琴分行">横琴分行</option>
+                <option value="高明支行">高明支行</option>
+                <option value="三水支行">三水支行</option>
+                <option value="南海高新支行">南海高新支行</option>
+                <option value="番禺支行">番禺支行</option>
+                <option value="东莞常平支行">东莞常平支行</option>
+                <option value="新会支行">新会支行</option>
+            </select>
+        </div>
+        <div class="field">
+            <div class="field-label">承办网点</div>
+            <input type="text" class="field-input" id="handlerBranch" placeholder="请输入承办网点">
+        </div>
+    </div>
+
+    <!-- 客户信息 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">👤</span>客户信息</div>
+        <div class="field">
+            <div class="field-label">主体名称<span class="req">*</span></div>
+            <input type="text" class="field-input" id="subjectName" placeholder="请输入涉事主体名称">
+        </div>
+        <div class="field">
+            <div class="field-label">主体类型<span class="req">*</span></div>
+            <select class="field-select" id="subjectType">
+                <option value="">请选择主体类型</option>
+                <option value="个人">个人</option>
+                <option value="企业">企业</option>
+                <option value="事业单位">事业单位</option>
+                <option value="政府机构">政府机构</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+        <div class="field">
+            <div class="field-label">可疑账户<span class="req">*</span></div>
+            <input type="text" class="field-input" id="suspiciousAccount" placeholder="请输入可疑账户号码">
+        </div>
+        <div class="field">
+            <div class="field-label">证件号码/统一社会信用代码</div>
+            <input type="text" class="field-input" id="subjectId" placeholder="请输入证件号码或统一社会信用代码">
+        </div>
+        <div class="field">
+            <div class="field-label">联系方式</div>
+            <input type="tel" class="field-input" id="subjectContact" placeholder="请输入联系方式">
+        </div>
+        <div class="field">
+            <div class="field-label">住址/地址</div>
+            <input type="text" class="field-input" id="subjectAddress" placeholder="请输入住址或地址">
+        </div>
+    </div>
+
+    <!-- 线索详情 -->
+    <div class="card">
+        <div class="card-title"><span class="icon">🔍</span>线索详情</div>
+        <div class="field">
+            <div class="field-label">线索描述<span class="req">*</span></div>
+            <textarea class="field-textarea" id="clueDescription" placeholder="请详细描述线索内容，包括时间、地点、事件经过等信息" rows="5"></textarea>
+        </div>
+        <div class="field">
+            <div class="field-label">证据材料</div>
+            <textarea class="field-textarea" id="clueEvidence" placeholder="请列明相关证据材料，如书证、物证、证人证言、音视频资料等" rows="3"></textarea>
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📎</div>
+                <div class="upload-text">点击添加附件</div>
+                <div class="upload-hint">支持图片、文档等，单个不超过50MB</div>
+            </div>
+            <input type="file" id="fileInput" multiple style="display:none" onchange="handleFileSelect(event)">
+            <div class="file-list" id="fileList"></div>
+        </div>
+        <div class="field">
+            <div class="field-label">初步核查意见<span class="req">*</span></div>
+            <textarea class="field-textarea" id="initialAssessment" placeholder="请填写对线索的初步分析和核查建议" rows="3"></textarea>
+        </div>
+    </div>
+
+    <!-- 底部按钮 -->
+    <div class="bottom-bar">
+        <button class="btn btn-success" onclick="saveDraft()">💾 暂存</button>
+        <button class="btn btn-primary" onclick="generatePreview()">生成模板 →</button>
+    </div>
+</div>
+
+<!-- 页面2: 模板预览 -->
+<div class="page" id="pagePreview">
+    <nav class="navbar">
+        <h1><span class="nav-icon">📄</span>报告预览</h1>
+    </nav>
+    <div class="card" style="margin-top:12px;">
+        <div id="previewContent"></div>
+    </div>
+    <div class="bottom-bar">
+        <button class="btn" style="background:#fff;color:var(--primary);border:1.5px solid var(--primary);" onclick="goBack()">← 修改</button>
+        <button class="btn btn-primary" onclick="copyText()">📋 复制文本</button>
+    </div>
+</div>
+
+<script>
+// ========== 日期默认值 ==========
+document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
+
+// ========== 附件管理 ==========
+let uploadedFiles = [];
+
+function handleFileSelect(e) {
+    const files = Array.from(e.target.files);
+    files.forEach(f => {
+        if (!uploadedFiles.some(x => x.name === f.name && x.size === f.size)) {
+            uploadedFiles.push(f);
+        }
+    });
+    e.target.value = '';
+    renderFiles();
+}
+
+function removeFile(i) {
+    uploadedFiles.splice(i, 1);
+    renderFiles();
+}
+
+function renderFiles() {
+    const el = document.getElementById('fileList');
+    if (!uploadedFiles.length) { el.innerHTML = ''; return; }
+    el.innerHTML = uploadedFiles.map((f, i) => `
+        <div class="file-item">
+            <span class="ficon">📄</span>
+            <div style="flex:1;overflow:hidden;">
+                <div class="fname">${esc(f.name)}</div>
+                <div class="fsize">${fmtSize(f.size)}</div>
+            </div>
+            <span class="fremove" onclick="removeFile(${i})">✕</span>
+        </div>
+    `).join('');
+}
+
+function fmtSize(b) {
+    if (b < 1024) return b + 'B';
+    if (b < 1048576) return (b/1024).toFixed(1) + 'KB';
+    return (b/1048576).toFixed(1) + 'MB';
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ========== Toast ==========
+function showToast(msg, ms) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), ms || 1800);
+}
+
+// ========== 表单取值 ==========
+function getVal(id) { return (document.getElementById(id).value || '').trim(); }
+
+function validate() {
+    const checks = [
+        ['reportDate', '上报日期'], ['reporter', '上报人'],
+        ['handlerDepartment', '上报支行'], ['subjectName', '主体名称'],
+        ['subjectType', '主体类型'], ['suspiciousAccount', '可疑账户'],
+        ['clueDescription', '线索描述'], ['initialAssessment', '初步核查意见']
+    ];
+    for (const [id, label] of checks) {
+        if (!getVal(id)) { showToast('请填写：' + label); return false; }
+    }
+    return true;
+}
+
+// ========== 暂存草稿 ==========
+function saveDraft() {
+    const data = collectData();
+    try {
+        localStorage.setItem('clue_draft', JSON.stringify(data));
+        showToast('✓ 草稿已保存');
+    } catch(e) { showToast('保存失败'); }
+}
+
+function loadDraft() {
+    try {
+        const raw = localStorage.getItem('clue_draft');
+        if (!raw) return;
+        const d = JSON.parse(raw);
+        const fields = ['reportDate','reporter','reporterContact','handlerDepartment',
+            'handlerBranch','subjectName','subjectType','suspiciousAccount',
+            'subjectId','subjectContact','subjectAddress',
+            'clueDescription','clueEvidence','initialAssessment'];
+        fields.forEach(f => { if (d[f]) document.getElementById(f).value = d[f]; });
+        if (d.fileNames) {
+            // 恢复文件名列表（文件对象无法序列化，仅恢复名称）
+            uploadedFiles = d.fileNames.map(n => ({name: n, size: 0}));
+            renderFiles();
+        }
+    } catch(e) {}
+}
+
+// ========== 收集数据 ==========
+function collectData() {
+    return {
+        reportDate: getVal('reportDate'),
+        reporter: getVal('reporter'),
+        reporterContact: getVal('reporterContact'),
+        handlerDepartment: getVal('handlerDepartment'),
+        handlerBranch: getVal('handlerBranch'),
+        subjectName: getVal('subjectName'),
+        subjectType: getVal('subjectType'),
+        suspiciousAccount: getVal('suspiciousAccount'),
+        subjectId: getVal('subjectId'),
+        subjectContact: getVal('subjectContact'),
+        subjectAddress: getVal('subjectAddress'),
+        clueDescription: getVal('clueDescription'),
+        clueEvidence: getVal('clueEvidence'),
+        initialAssessment: getVal('initialAssessment'),
+        fileNames: uploadedFiles.map(f => f.name)
+    };
+}
+
+// ========== 生成文本模板 ==========
+function buildText(d) {
+    const lines = [];
+    lines.push('【一、基本信息】');
+    lines.push('上报日期：' + (d.reportDate || ''));
+    lines.push('上报人：' + (d.reporter || ''));
+    lines.push('上报人联系方式：' + (d.reporterContact || '暂无'));
+    lines.push('上报支行：' + (d.handlerDepartment || ''));
+    lines.push('承办网点：' + (d.handlerBranch || '暂无'));
+    lines.push('');
+    lines.push('【二、客户信息】');
+    lines.push('主体名称：' + (d.subjectName || ''));
+    lines.push('主体类型：' + (d.subjectType || ''));
+    lines.push('可疑账户：' + (d.suspiciousAccount || ''));
+    lines.push('证件号码/统一社会信用代码：' + (d.subjectId || '暂无'));
+    lines.push('联系方式：' + (d.subjectContact || '暂无'));
+    lines.push('住址/地址：' + (d.subjectAddress || '暂无'));
+    lines.push('');
+    lines.push('【三、线索详情】');
+    lines.push('线索描述：');
+    lines.push(d.clueDescription || '');
+    lines.push('');
+    lines.push('证据材料：');
+    lines.push(d.clueEvidence || '无');
+    if (d.fileNames && d.fileNames.length) {
+        lines.push('附件清单：' + d.fileNames.join('、'));
+    }
+    lines.push('');
+    lines.push('初步核查意见：');
+    lines.push(d.initialAssessment || '');
+    return lines.join('\n');
+}
+
+// ========== 预览 ==========
+function generatePreview() {
+    if (!validate()) return;
+    const d = collectData();
+    const v = id => d[id] || '';
+    const ve = id => d[id] ? esc(d[id]) : '<span class="empty">暂无</span>';
+
+    document.getElementById('previewContent').innerHTML = `
+        <div style="text-align:center;padding-bottom:16px;border-bottom:2px solid var(--primary);margin-bottom:16px;">
+            <div style="font-size:20px;font-weight:700;color:var(--primary);">可疑线索报告</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">—— ${esc(v('reportDate'))} ——</div>
+        </div>
+        <div class="preview-section">
+            <div class="preview-section-title">📋 基本信息</div>
+            <div class="preview-row"><span class="label">上报日期</span><span class="value">${esc(v('reportDate'))}</span></div>
+            <div class="preview-row"><span class="label">上报人</span><span class="value">${esc(v('reporter'))}</span></div>
+            <div class="preview-row"><span class="label">上报人联系方式</span><span class="value ${!v('reporterContact')?'empty':''}">${ve('reporterContact')}</span></div>
+            <div class="preview-row"><span class="label">上报支行</span><span class="value">${esc(v('handlerDepartment'))}</span></div>
+            <div class="preview-row"><span class="label">承办网点</span><span class="value ${!v('handlerBranch')?'empty':''}">${ve('handlerBranch')}</span></div>
+        </div>
+        <div class="preview-section">
+            <div class="preview-section-title">👤 客户信息</div>
+            <div class="preview-row"><span class="label">主体名称</span><span class="value">${esc(v('subjectName'))}</span></div>
+            <div class="preview-row"><span class="label">主体类型</span><span class="value">${esc(v('subjectType'))}</span></div>
+            <div class="preview-row"><span class="label">可疑账户</span><span class="value" style="color:var(--danger);">${esc(v('suspiciousAccount'))}</span></div>
+            <div class="preview-row"><span class="label">证件号码</span><span class="value ${!v('subjectId')?'empty':''}">${ve('subjectId')}</span></div>
+            <div class="preview-row"><span class="label">联系方式</span><span class="value ${!v('subjectContact')?'empty':''}">${ve('subjectContact')}</span></div>
+            <div class="preview-row"><span class="label">住址/地址</span><span class="value ${!v('subjectAddress')?'empty':''}">${ve('subjectAddress')}</span></div>
+        </div>
+        <div class="preview-section" style="margin-bottom:16px;">
+            <div class="preview-section-title">🔍 线索详情</div>
+            <div class="preview-block"><div class="label">线索描述</div><div class="value">${esc(v('clueDescription'))}</div></div>
+            <div class="preview-block"><div class="label">证据材料</div><div class="value ${!v('clueEvidence')?'empty':''}">${ve('clueEvidence')}</div></div>
+            <div class="preview-block"><div class="label">初步核查意见</div><div class="value">${esc(v('initialAssessment'))}</div></div>
+        </div>
+    `;
+
+    // 存储文本供复制
+    window._generatedText = buildText(d);
+
+    // 切换页面
+    document.getElementById('pageForm').classList.remove('active');
+    document.getElementById('pagePreview').classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function goBack() {
+    document.getElementById('pagePreview').classList.remove('active');
+    document.getElementById('pageForm').classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+// ========== 复制文本 ==========
+function copyText() {
+    const text = window._generatedText || '';
+    if (!text) { showToast('无内容可复制'); return; }
+
+    // 优先使用 Clipboard API，回退到 execCommand（微信兼容）
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('✓ 已复制到剪贴板');
+        }).catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    try {
+        document.execCommand('copy');
+        showToast('✓ 已复制到剪贴板');
+    } catch(e) {
+        showToast('复制失败，请手动复制');
+    }
+    document.body.removeChild(ta);
+}
+
+// ========== 初始化 ==========
+loadDraft();
+</script>
+</body>
+</html>
