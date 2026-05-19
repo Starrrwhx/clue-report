@@ -460,14 +460,14 @@ function collectData() {
 // ========== 生成文本模板 ==========
 function buildText(d) {
     const lines = [];
-    lines.push('【一、基本信息】');
+    lines.push('【基本信息】');
     lines.push('上报日期：' + (d.reportDate || ''));
     lines.push('上报人：' + (d.reporter || ''));
     lines.push('上报人联系方式：' + (d.reporterContact || '暂无'));
     lines.push('上报支行：' + (d.handlerDepartment || ''));
     lines.push('承办网点：' + (d.handlerBranch || '暂无'));
     lines.push('');
-    lines.push('【二、客户信息】');
+    lines.push('【客户信息】');
     lines.push('主体名称：' + (d.subjectName || ''));
     lines.push('主体类型：' + (d.subjectType || ''));
     lines.push('可疑账户：' + (d.suspiciousAccount || ''));
@@ -475,7 +475,7 @@ function buildText(d) {
     lines.push('联系方式：' + (d.subjectContact || '暂无'));
     lines.push('住址/地址：' + (d.subjectAddress || '暂无'));
     lines.push('');
-    lines.push('【三、线索详情】');
+    lines.push('【线索详情】');
     lines.push('线索描述：');
     lines.push(d.clueDescription || '');
     lines.push('');
